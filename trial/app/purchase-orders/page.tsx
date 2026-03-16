@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getApiUrl } from "@/lib/api";
 
 type Item = {
@@ -32,8 +32,6 @@ type RequestDetails = {
 
 export default function PurchaseOrdersPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestId = searchParams.get("requestId");
 
   const [items, setItems] = useState<Item[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -42,6 +40,7 @@ export default function PurchaseOrdersPage() {
   const [item, setItem] = useState("");
   const [vendor, setVendor] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [requestId, setRequestId] = useState<string | null>(null);
 
   // Fetch Items
   const fetchItems = async () => {
@@ -66,6 +65,11 @@ export default function PurchaseOrdersPage() {
     const data = await res.json();
     setOrders(data);
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRequestId(params.get("requestId"));
+  }, []);
 
   useEffect(() => {
     const loadPage = async () => {
