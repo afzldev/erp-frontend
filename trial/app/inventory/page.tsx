@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from "@/lib/api";
 
 export default function InventoryPage() {
   const [inventory, setInventory] = useState([]);
 
   const fetchInventory = async () => {
-    const res = await fetch("http://localhost:5000/api/inventory");
+    const res = await fetch(getApiUrl("/api/inventory"));
     const data = await res.json();
     setInventory(data);
   };

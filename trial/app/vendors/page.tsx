@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from "@/lib/api";
 
 type Vendor = {
   _id?: string;
@@ -17,7 +18,7 @@ export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
 
   const fetchVendors = async () => {
-    const res = await fetch("http://localhost:5000/api/vendors");
+    const res = await fetch(getApiUrl("/api/vendors"));
     const data = await res.json();
     setVendors(data);
   };
@@ -29,7 +30,7 @@ export default function VendorsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await fetch("http://localhost:5000/api/vendors", {
+    await fetch(getApiUrl("/api/vendors"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

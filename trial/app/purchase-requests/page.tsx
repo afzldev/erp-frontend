@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getApiUrl } from "@/lib/api";
 
 type Item = {
   _id: string;
@@ -33,21 +34,21 @@ export default function PurchaseRequestsPage() {
   const [quantity, setQuantity] = useState("");
 
   const fetchItems = async () => {
-    const res = await fetch("http://localhost:5000/api/items");
+    const res = await fetch(getApiUrl("/api/items"));
     if (!res.ok) throw new Error("Failed to fetch items");
     const data = await res.json();
     setItems(data);
   };
 
   const fetchVendors = async () => {
-    const res = await fetch("http://localhost:5000/api/vendors");
+    const res = await fetch(getApiUrl("/api/vendors"));
     if (!res.ok) throw new Error("Failed to fetch vendors");
     const data = await res.json();
     setVendors(data);
   };
 
   const fetchRequests = async () => {
-    const res = await fetch("http://localhost:5000/api/requests");
+    const res = await fetch(getApiUrl("/api/requests"));
     if (!res.ok) throw new Error("Failed to fetch requests");
     const data = await res.json();
     setRequests(data);
@@ -69,7 +70,7 @@ export default function PurchaseRequestsPage() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/api/requests", {
+      const res = await fetch(getApiUrl("/api/requests"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,12 +95,9 @@ export default function PurchaseRequestsPage() {
 
   const createOrderFromRequest = async (requestId: string) => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/requests/${requestId}/convert`,
-        {
-          method: "POST",
-        }
-      );
+      const res = await fetch(getApiUrl(`/api/requests/${requestId}/convert`), {
+        method: "POST",
+      });
 
       if (!res.ok) {
         const error = await res.json().catch(() => null);

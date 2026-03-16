@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from "@/lib/api";
 
 type Item = {
   _id?: string;
@@ -18,7 +19,7 @@ export default function ItemsPage() {
 
   // Load items from backend
   const fetchItems = async () => {
-    const res = await fetch("http://localhost:5000/api/items");
+    const res = await fetch(getApiUrl("/api/items"));
     const data = await res.json();
     setItems(data);
   };
@@ -30,7 +31,7 @@ export default function ItemsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await fetch("http://localhost:5000/api/items", {
+    await fetch(getApiUrl("/api/items"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

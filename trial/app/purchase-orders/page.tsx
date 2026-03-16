@@ -4,8 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-const API = process.env.NEXT_PUBLIC_API_URL;
+import { getApiUrl } from "@/lib/api";
 
 type Item = {
   _id: string;
@@ -46,7 +45,7 @@ export default function PurchaseOrdersPage() {
 
   // Fetch Items
   const fetchItems = async () => {
-    const res = await fetch(`${API}/api/items`);
+    const res = await fetch(getApiUrl("/api/items"));
     if (!res.ok) throw new Error("Failed to fetch items");
     const data = await res.json();
     setItems(data);
@@ -54,7 +53,7 @@ export default function PurchaseOrdersPage() {
 
   // Fetch Vendors
   const fetchVendors = async () => {
-    const res = await fetch(`${API}/api/vendors`);
+    const res = await fetch(getApiUrl("/api/vendors"));
     if (!res.ok) throw new Error("Failed to fetch vendors");
     const data = await res.json();
     setVendors(data);
@@ -62,7 +61,7 @@ export default function PurchaseOrdersPage() {
 
   // Fetch Orders
   const fetchOrders = async () => {
-    const res = await fetch(`${API}/api/orders`);
+    const res = await fetch(getApiUrl("/api/orders"));
     if (!res.ok) throw new Error("Failed to fetch orders");
     const data = await res.json();
     setOrders(data);
@@ -74,7 +73,7 @@ export default function PurchaseOrdersPage() {
         await Promise.all([fetchItems(), fetchVendors(), fetchOrders()]);
 
         if (requestId) {
-          const res = await fetch(`${API}/api/requests/${requestId}`);
+          const res = await fetch(getApiUrl(`/api/requests/${requestId}`));
 
           if (!res.ok) throw new Error("Failed to fetch request");
 
@@ -97,8 +96,8 @@ export default function PurchaseOrdersPage() {
 
     try {
       const endpoint = requestId
-        ? `${API}/api/requests/${requestId}/convert`
-        : `${API}/api/orders`;
+        ? getApiUrl(`/api/requests/${requestId}/convert`)
+        : getApiUrl("/api/orders");
 
       const options: RequestInit = {
         method: "POST",
@@ -135,7 +134,7 @@ export default function PurchaseOrdersPage() {
   // Receive Order
   const receiveOrder = async (id: string) => {
     try {
-      const res = await fetch(`${API}/api/orders/${id}/receive`, {
+      const res = await fetch(getApiUrl(`/api/orders/${id}/receive`), {
         method: "POST",
       });
 
