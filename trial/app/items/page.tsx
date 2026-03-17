@@ -14,14 +14,31 @@ export default function ItemsPage() {
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
+  const [error, setError] = useState("");
 
   const [items, setItems] = useState<Item[]>([]);
 
   // Load items from backend
   const fetchItems = async () => {
-    const res = await fetch(getApiUrl("/api/items"));
-    const data = await res.json();
-    setItems(data);
+    try {
+      setError("");
+
+      const res = await fetch(getApiUrl("/api/items"));
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        console.error("GET /api/items failed", {
+          status: res.status,
+          data,
+        });
+        throw new Error(data?.message || "Failed to fetch items");
+      }
+
+      setItems(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("fetchItems error", error);
+      setError(error instanceof Error ? error.message : "Failed to fetch items");
+    }
   };
 
   useEffect(() => {
@@ -31,28 +48,51 @@ export default function ItemsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await fetch(getApiUrl("/api/items"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    try {
+      setError("");
+
+      const payload = {
         name,
         sku,
         unitPrice: Number(price),
-      }),
-    });
+      };
 
-    setName("");
-    setSku("");
-    setPrice("");
+      console.log("POST /api/items payload", payload);
 
-    fetchItems();
+      const res = await fetch(getApiUrl("/api/items"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        console.error("POST /api/items failed", {
+          status: res.status,
+          data,
+        });
+        throw new Error(data?.message || "Failed to create item");
+      }
+
+      setName("");
+      setSku("");
+      setPrice("");
+
+      fetchItems();
+    } catch (error) {
+      console.error("handleSubmit item error", error);
+      setError(error instanceof Error ? error.message : "Failed to create item");
+    }
   };
 
   return (
     <div>
       <h1>Items</h1>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <form onSubmit={handleSubmit}>
 

@@ -41,29 +41,39 @@ export default function PurchaseOrdersPage() {
   const [vendor, setVendor] = useState("");
   const [quantity, setQuantity] = useState("");
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   // Fetch Items
   const fetchItems = async () => {
     const res = await fetch(getApiUrl("/api/items"));
-    if (!res.ok) throw new Error("Failed to fetch items");
-    const data = await res.json();
-    setItems(data);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      console.error("GET /api/items failed", { status: res.status, data });
+      throw new Error(data?.message || "Failed to fetch items");
+    }
+    setItems(Array.isArray(data) ? data : []);
   };
 
   // Fetch Vendors
   const fetchVendors = async () => {
     const res = await fetch(getApiUrl("/api/vendors"));
-    if (!res.ok) throw new Error("Failed to fetch vendors");
-    const data = await res.json();
-    setVendors(data);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      console.error("GET /api/vendors failed", { status: res.status, data });
+      throw new Error(data?.message || "Failed to fetch vendors");
+    }
+    setVendors(Array.isArray(data) ? data : []);
   };
 
   // Fetch Orders
   const fetchOrders = async () => {
     const res = await fetch(getApiUrl("/api/orders"));
-    if (!res.ok) throw new Error("Failed to fetch orders");
-    const data = await res.json();
-    setOrders(data);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      console.error("GET /api/orders failed", { status: res.status, data });
+      throw new Error(data?.message || "Failed to fetch orders");
+    }
+    setOrders(Array.isArray(data) ? data : []);
   };
 
   useEffect(() => {
@@ -74,6 +84,7 @@ export default function PurchaseOrdersPage() {
   useEffect(() => {
     const loadPage = async () => {
       try {
+        setError("");
         await Promise.all([fetchItems(), fetchVendors(), fetchOrders()]);
 
         if (requestId) {
@@ -88,6 +99,7 @@ export default function PurchaseOrdersPage() {
         }
       } catch (error) {
         console.error(error);
+        setError(error instanceof Error ? error.message : "Failed to load purchase orders");
       }
     };
 
@@ -99,6 +111,7 @@ export default function PurchaseOrdersPage() {
     e.preventDefault();
 
     try {
+      setError("");
       const endpoint = requestId
         ? getApiUrl(`/api/requests/${requestId}/convert`)
         : getApiUrl("/api/orders");
@@ -112,6 +125,7 @@ export default function PurchaseOrdersPage() {
 
       if (!requestId) {
         options.body = JSON.stringify({ item, vendor, quantity });
+        console.log("POST /api/orders payload", { item, vendor, quantity });
       }
 
       const res = await fetch(endpoint, options);
@@ -132,12 +146,14 @@ export default function PurchaseOrdersPage() {
       }
     } catch (error) {
       console.error(error);
+      setError(error instanceof Error ? error.message : "Failed to create order");
     }
   };
 
   // Receive Order
   const receiveOrder = async (id: string) => {
     try {
+      setError("");
       const res = await fetch(getApiUrl(`/api/orders/${id}/receive`), {
         method: "POST",
       });
@@ -150,12 +166,15 @@ export default function PurchaseOrdersPage() {
       await fetchOrders();
     } catch (error) {
       console.error(error);
+      setError(error instanceof Error ? error.message : "Failed to receive order");
     }
   };
 
   return (
     <div>
       <h1>Purchase Orders</h1>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <form onSubmit={handleSubmit}>
         <div>

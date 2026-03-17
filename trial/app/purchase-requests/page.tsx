@@ -32,44 +32,52 @@ export default function PurchaseRequestsPage() {
   const [item, setItem] = useState("");
   const [vendor, setVendor] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [error, setError] = useState("");
 
   const fetchItems = async () => {
     const res = await fetch(getApiUrl("/api/items"));
-    if (!res.ok) throw new Error("Failed to fetch items");
-    const data = await res.json();
-    setItems(data);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.message || "Failed to fetch items");
+    setItems(Array.isArray(data) ? data : []);
   };
 
   const fetchVendors = async () => {
     const res = await fetch(getApiUrl("/api/vendors"));
-    if (!res.ok) throw new Error("Failed to fetch vendors");
-    const data = await res.json();
-    setVendors(data);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.message || "Failed to fetch vendors");
+    setVendors(Array.isArray(data) ? data : []);
   };
 
   const fetchRequests = async () => {
     const res = await fetch(getApiUrl("/api/requests"));
-    if (!res.ok) throw new Error("Failed to fetch requests");
-    const data = await res.json();
-    setRequests(data);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.message || "Failed to fetch requests");
+    setRequests(Array.isArray(data) ? data : []);
   };
 
   useEffect(() => {
     const loadPage = async () => {
       try {
+        setError("");
         await Promise.all([fetchItems(), fetchVendors(), fetchRequests()]);
       } catch (error) {
         console.error(error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load purchase requests"
+        );
       }
     };
 
-    loadPage();
+    void loadPage();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
+      setError("");
       const res = await fetch(getApiUrl("/api/requests"), {
         method: "POST",
         headers: {
@@ -90,11 +98,15 @@ export default function PurchaseRequestsPage() {
       await fetchRequests();
     } catch (error) {
       console.error(error);
+      setError(
+        error instanceof Error ? error.message : "Failed to create request"
+      );
     }
   };
 
   const createOrderFromRequest = async (requestId: string) => {
     try {
+      setError("");
       const res = await fetch(getApiUrl(`/api/requests/${requestId}/convert`), {
         method: "POST",
       });
@@ -108,12 +120,17 @@ export default function PurchaseRequestsPage() {
       router.push("/purchase-orders");
     } catch (error) {
       console.error(error);
+      setError(
+        error instanceof Error ? error.message : "Failed to create order"
+      );
     }
   };
 
   return (
     <div>
       <h1>Purchase Requests</h1>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <form onSubmit={handleSubmit}>
         <div>
@@ -177,7 +194,10 @@ export default function PurchaseRequestsPage() {
 
               <td>
                 {r.status === "Pending" && (
-                  <button onClick={() => createOrderFromRequest(r._id)}>
+                  <button
+                    type="button"
+                    onClick={() => createOrderFromRequest(r._id)}
+                  >
                     Create Order
                   </button>
                 )}
